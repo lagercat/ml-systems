@@ -11,34 +11,39 @@ DATA_COLUMNS = ['Hobby', 'OpenSource', 'Country', 'Student',
 COUNTRIES = []
 
 
+def convert_salary(x):
+    x = x.replace(",", "")
+    return float(x)
+
 def load_data():
     data = pd.read_csv(DATASET_PATH, usecols=DATA_COLUMNS, skiprows=0, header=0)
     data = data.dropna()
-       
+
+    data['Salary'] = data['Salary'].apply(convert_salary)
+
     rows_in_train = int(0.7 * data.shape[0])
     train = data.iloc[0:rows_in_train]
     test = data.iloc[rows_in_train:]
 
-    train_x, train_y = train.drop('Salary', 1), train['Salary'].to_frame()
-    test_x, test_y = test.drop('Salary', 1), test['Salary'].to_frame()
+    train_x, train_y = train.drop('Salary', 1), train['Salary']
+    test_x, test_y = test.drop('Salary', 1), test['Salary']
 
     return (train_x, train_y), (test_x, test_y)
 
 
 def train_input(features, results):
-    features = dict(features)
-    inputs = (features, results)
+    dataset = tf.data.Dataset.from_tensor_slices((dict(features), results))
+    dataset = dataset.shuffle(1000).batch(1).repeat()
 
-    dataset = tf.data.Dataset.from_tensor_slices(inputs)
-    dataset = dataset.batch(40000)
+    return dataset.make_one_shot_iterator().get_next()
 
-    return dataset
 
 def get_unique_values(*args):
     list_of_all_values = []
     for argument in args:
         list_of_all_values += argument.values.T.tolist()
     return list(set(list_of_all_values))
+
 
 def main(argv):
     (train_x, train_y), (test_x, test_y) = load_data()
@@ -55,7 +60,8 @@ def main(argv):
 
     classifier.train(
         input_fn=lambda:train_input(train_x, train_y),
-        steps=100)
+        steps=10000)
+
 
 if __name__ == '__main__':
     tf.logging.set_verbosity(tf.logging.INFO)
