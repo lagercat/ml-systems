@@ -37,7 +37,7 @@ def load_data():
 def train_input(features, results):
     dataset = tf.data.Dataset.from_tensor_slices((dict(features), results))
     dataset = dataset.batch(10)
-    return dataset.make_one_shot_iterator().get_next()
+    return dataset
 
 '''
 def get_unique_values(*args):
