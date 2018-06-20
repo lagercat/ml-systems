@@ -8,9 +8,11 @@ def dnn_model_fn(features, labels, mode, params):
     top = tf.feature_column.input_layer(features, params['feature_columns'])
 
     for units in params.get('hidden_units', [20]):
-        top = tf.layers.dense(inputs=top, units=units, activation=tf.nn.relu)
+        top = tf.layers.dense(inputs=top, units=units,
+                              activation=tf.nn.sigmoid)
 
-    output_layer = tf.layers.dense(inputs=top, units=1)
+    output_layer = tf.layers.dense(inputs=top, units=1,
+                                   activation=tf.nn.sigmoid)
 
     predictions = tf.squeeze(output_layer, 1)
 
@@ -27,10 +29,20 @@ def dnn_model_fn(features, labels, mode, params):
         optimizer = params.get('optimizer', tf.train.AdamOptimizer)
         optimizer = optimizer(params.get('learning_rate', None))
         train_op = optimizer.minimize(loss=average_loss,
-                global_step=tf.train.get_global_step())
-
+                                      global_step=100)
         return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss,
-                train_op=train_op)
+                                          train_op=train_op)
+
+    assert mode == tf.estimator.ModeKeys.EVAL
+
+    print(labels)
+    print(predictions)
+
+    predictions = tf.cast(predictions, tf.float64)
+    rmse = tf.metrics.root_mean_squared_error(labels, predictions)
+    eval_metric = {"rmse": rmse}
+    return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss,
+                                      eval_metric_ops=eval_metric)
 
 
 def main(argv):
@@ -56,7 +68,16 @@ def main(argv):
         tf.feature_column.numeric_column(key='Parch')
     ]
 
-
+    model = tf.estimator.Estimator(
+            model_fn=dnn_model_fn,
+            params={
+                'feature_columns': feature_columns,
+                'learning_rate': 0.001,
+                'optimizer': tf.train.GradientDescentOptimizer,
+                'hidden_units': [20, 20]
+            }
+    )
+    model.train(input_fn=lambda: inp(train_x, train_y), steps=100)
 
 
 if __name__ == '__main__':
