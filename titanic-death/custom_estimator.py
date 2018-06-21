@@ -29,7 +29,7 @@ def dnn_model_fn(features, labels, mode, params):
         optimizer = params.get('optimizer', tf.train.AdamOptimizer)
         optimizer = optimizer(params.get('learning_rate', None))
         train_op = optimizer.minimize(loss=average_loss,
-                                      global_step=100)
+                                      global_step=tf.train.get_global_step())
         return tf.estimator.EstimatorSpec(mode=mode, loss=total_loss,
                                           train_op=train_op)
 
