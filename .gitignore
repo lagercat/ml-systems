@@ -104,4 +104,4 @@ venv.bak/
 .mypy_cache/
 
 #Submit dataset
-test.csv
+titanic-death/submit.csv
