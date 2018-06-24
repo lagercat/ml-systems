@@ -1,10 +1,9 @@
+import matplotlib
 import tensorflow as tf
 from get_data import inp, load_data, load_submit, write_to_file
 
 
 def main(argv):
-
-    (train_x, train_y), (test_x, test_y) = load_data()
 
     feature_columns = [
         tf.feature_column.embedding_column(
@@ -25,27 +24,34 @@ def main(argv):
         tf.feature_column.numeric_column(key='SibSp'),
         tf.feature_column.numeric_column(key='Parch')
     ]
+    
+    data_s = []
 
-    units = 3 * [20]
-    optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
-    model = tf.estimator.DNNClassifier(hidden_units=units,
-                                       feature_columns=feature_columns,
-                                       optimizer=optimizer)
+    for data_size in range(1, 892):
+        (train_x, train_y), (test_x, test_y) = load_data(data_size)
 
-    model.train(input_fn=lambda: inp(train_x, train_y, 'TRAIN'),
-                steps=2225)
+        units = 5 * [20]
+        optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
+        model = tf.estimator.DNNClassifier(hidden_units=units,
+                                           feature_columns=feature_columns,
+                                           optimizer=optimizer)
 
-    eval_result = model.evaluate(input_fn=lambda: inp(test_x, test_y,
-                                 'EVAL'))
-    average_loss = eval_result['average_loss']
-    print('Average loss: ' + str(average_loss))
+        model.train(input_fn=lambda: inp(train_x, train_y, 'TRAIN'),
+                    steps=2225)
 
+        eval_result = model.evaluate(input_fn=lambda: inp(test_x, test_y,
+                                     'EVAL'))
+        average_loss = eval_result['average_loss']
+        print('Average loss: ' + str(average_loss))
+
+    """
     brute_results = model.predict(input_fn=lambda: inp(load_submit(),
                                   (), 'PREDICT'))
     net_results = []
     for line in brute_results:
         net_results.append(line['class_ids'][0])
     write_to_file(net_results)
+    """
 
 
 if __name__ == '__main__':

@@ -20,9 +20,9 @@ fill_dict = {
 }
 
 
-def load_data():
+def load_data(data_size=892):
     data = pd.read_csv(DATASET, usecols=CSV_COLUMNS,
-                       header=0).fillna(fill_dict)
+                       header=0).fillna(fill_dict).head(data_size)
     rows = data.shape[0]
 
     train_data = data.head(int(0.7 * rows))
