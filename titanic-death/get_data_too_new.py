@@ -2,7 +2,7 @@ import tensorflow as tf
 import pandas as pd
 
 
-CSV_COLUMNS = ['Survived', 'Pclass', 'Sex', 'Age',
+CSV_COLUMNS = ['Survived', 'Pclass', 'Sex', 'Age'
                'Fare', 'Embarked', 'SibSp', 'Parch']
 
 
@@ -20,13 +20,13 @@ fill_dict = {
 }
 
 
-def load_data():
+def load_data(train_test_ration=1.0):
     data = pd.read_csv(DATASET, usecols=CSV_COLUMNS,
                        header=0).fillna(fill_dict)
     rows = data.shape[0]
 
-    train_data = data.head(int(1.0 * rows))
-    test_data = data.head(rows - int(1.0 * rows))
+    train_data = data.head(int(train_test_ration * rows))
+    test_data = data.head(rows - int(train_test_ration * rows))
 
     train_x, train_y = train_data.drop('Survived', 1), train_data['Survived']
     test_x, test_y = test_data.drop('Survived', 1), test_data['Survived']
@@ -43,7 +43,7 @@ def load_submit():
 def inp(features, labels, mode):
     if mode == 'TRAIN' or mode == 'EVAL':
         dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
-        dataset = dataset.repeat(2000).batch(32)
+        dataset = dataset.repeat(100).batch(32)
     elif mode == 'PREDICT':
         dataset = tf.data.Dataset.from_tensor_slices(dict(features)).batch(417)
     return dataset
