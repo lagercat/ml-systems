@@ -4,30 +4,31 @@ from get_data import inp, load_data, load_submit, write_to_file
 
 def main(argv):
 
-    (train_x, train_y), (test_x, test_y) = load_data()
 
     feature_columns = [
-        tf.feature_column.embedding_column(
+        tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_identity(
-                key='Pclass', num_buckets=5),
-            dimension=5),
-        tf.feature_column.embedding_column(
+                key='Pclass', num_buckets=5)),
+        tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_vocabulary_list(
                 key='Sex',
-                vocabulary_list=['male', 'female']), dimension=4),
+                vocabulary_list=['male', 'female'])),
         tf.feature_column.numeric_column(key='Age'),
         tf.feature_column.numeric_column(key='Fare'),
-        tf.feature_column.embedding_column(
+        tf.feature_column.indicator_column(
             tf.feature_column.categorical_column_with_vocabulary_list(
                 key='Embarked',
-                vocabulary_list=['C', 'Q', 'S']),
-            dimension=5),
+                vocabulary_list=['C', 'Q', 'S'])),
         tf.feature_column.numeric_column(key='SibSp'),
-        tf.feature_column.numeric_column(key='Parch')
+        tf.feature_column.numeric_column(key='Parch'),
+        tf.feature_column.numeric_column(key='agcl'),
+        tf.feature_column.numeric_column(key='fsize')
     ]
 
-    units = 5 * [20]
-    optimizer = tf.train.AdagradOptimizer(learning_rate=0.15)
+    (train_x, train_y), (test_x, test_y) = load_data()
+
+    units = 2 * [20]
+    optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
     model = tf.estimator.DNNClassifier(hidden_units=units,
                                        feature_columns=feature_columns,
                                        optimizer=optimizer,
@@ -39,6 +40,9 @@ def main(argv):
     eval_result = model.evaluate(input_fn=lambda: inp(test_x, test_y,
                                  'EVAL'))
     average_loss = eval_result['average_loss']
+
+
+    
     print('Average loss: ' + str(average_loss))
 
     brute_results = model.predict(input_fn=lambda: inp(load_submit(),
