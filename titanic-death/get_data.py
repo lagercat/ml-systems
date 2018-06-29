@@ -93,10 +93,10 @@ def load_submit():
     return data
 
 
-def inp(features, labels, mode):
+def inp(features, labels, mode, rep=2000):
     if mode == 'TRAIN' or mode == 'EVAL':
         dataset = tf.data.Dataset.from_tensor_slices((dict(features), labels))
-        dataset = dataset.batch(32).repeat(2000)
+        dataset = dataset.batch(32).repeat(rep)
     elif mode == 'PREDICT':
         dataset = tf.data.Dataset.from_tensor_slices(dict(features)).batch(417)
     return dataset

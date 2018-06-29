@@ -35,7 +35,7 @@ def main(argv):
         tf.feature_column.numeric_column(key='Fare_Per_Person')
     ]
 
-    (train_x, train_y), (test_x, test_y) = load_data()
+    (train_x, train_y), (test_x, test_y) = load_data(ratio=0.7)
 
     units = 2 * [30]
     optimizer = tf.train.AdagradOptimizer(learning_rate=0.1)
@@ -44,11 +44,11 @@ def main(argv):
                                        optimizer=optimizer,
                                        activation_fn=tf.nn.sigmoid)
 
-    model.train(input_fn=lambda: inp(train_x, train_y, 'TRAIN'),
-                steps=50000)
+    model.train(input_fn=lambda: inp(train_x, train_y, 'TRAIN', rep=3000),
+                steps=600000)
 
     eval_result = model.evaluate(input_fn=lambda: inp(test_x, test_y,
-                                 'EVAL'))
+                                 'EVAL', rep=1))
     average_loss = eval_result['average_loss']
 
     print('Average loss: ' + str(average_loss))
